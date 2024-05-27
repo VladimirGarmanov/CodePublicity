@@ -4,7 +4,7 @@ import sqlite3
 from aiogram import Bot, Dispatcher, types, executor
 import openai
 
-client = openai.OpenAI(api_key="sk-proj-EHGl77fR7EDj8kmzxNaqT3BlbkFJLlgCMmYPHzTih7CKCU1V")
+client = openai.OpenAI(api_key="")
 users = []
 
 file1 = client.files.create(
@@ -21,7 +21,7 @@ file3 = client.files.create(
 )
 
 
-Assistant_ID = 'asst_k6CzohXqymAeteT2CDcvU0TY'
+Assistant_ID = ''
 print(Assistant_ID)
 TELEGRAM_TOKEN = '6832211064:AAGj7DTV_LqZSli9Xz2Yn-0g4oegrg_4aFM'
 
