@@ -6,6 +6,7 @@ import openai
 
 client = openai.OpenAI(api_key="")
 users = []
+from openpyxl import Workbook, load_workbook
 
 file1 = client.files.create(
   file=open("ТРЕБОВАНИЯ К СПИКЕРАМ.pdf", "rb"),
@@ -21,19 +22,43 @@ file3 = client.files.create(
 )
 
 
-Assistant_ID = ''
+Assistant_ID = 'asst_mYsdSqR87HqRc6hkmVIuU01x'
 print(Assistant_ID)
-TELEGRAM_TOKEN = '6832211064:AAGj7DTV_LqZSli9Xz2Yn-0g4oegrg_4aFM'
+TELEGRAM_TOKEN = '7114081148:AAGc8_M3CiQqJFFpMyXrQi0o3pzH9_CJcCI'
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(bot)
 threads = {}
 
+async def write_to_excel(file_name, values):
+    try:
+        # Пытаемся загрузить существующую книгу Excel
+        wb = load_workbook(file_name)
+    except FileNotFoundError:
+        # Если файл не найден, создаем новую книгу
+        wb = Workbook()
 
+    # Выбираем активный лист или создаем новый, если его нет
+    ws = wb.active
 
+    # Записываем значения в новую строку
+    ws.append(values)
+
+    # Сохраняем книгу
+    wb.save(file_name)
+values_to_write = ['дата', 'ник', 'вопрос', 'ответ']  # Значения для записи
+write_to_excel("output.xlsx", values_to_write)
+
+@dp.message_handler(commands=['send'])
+async def send_excel_file(message: types.Message):
+    file_name = "output.xlsx"
+    with open(file_name, 'rb') as file:
+        await bot.send_document(message.chat.id, file)
 # Функция для добавления пользователя в базу данных
 async def handle_with_assistant(message, chat_id):
+    await bot.send_message(chat_id=message.chat.id, text='Обрабатываем ваш запрос...')
     print('генерация началась')
+
     thread_id = threads[chat_id]
     message_answer = client.beta.threads.messages.create(
         thread_id=thread_id,
@@ -71,6 +96,17 @@ async def handle_with_assistant(message, chat_id):
         content = msg.content[0].text.value
         print(f"{role.capitalize()}: {content}")
         await bot.send_message(chat_id=message.chat.id, text=content)
+        date = message.date.strftime("%Y-%m-%d %H:%M:%S")
+        username = message.from_user.username
+        question = message.text
+        answ = content
+        values_to_write.clear()
+        values_to_write.append(date)
+        values_to_write.append(username)
+        values_to_write.append(question)
+        values_to_write.append(answ)
+        await write_to_excel("output.xlsx", values_to_write)
+        values_to_write.clear()
 
 
 def add_user(chat_id):
@@ -93,7 +129,8 @@ async def start_command(message: types.Message):
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT)
 async def echo_message(message: types.Message):
-    await handle_with_assistant(message, message.chat.id)
+    if message.text != '/send':
+        await handle_with_assistant(message, message.chat.id)
 
 
 # Запуск бота
