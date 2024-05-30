@@ -3,7 +3,7 @@ import asyncio
 import sqlite3
 from aiogram import Bot, Dispatcher, types, executor
 import openai
-
+import re
 client = openai.OpenAI(api_key="")
 users = []
 from openpyxl import Workbook, load_workbook
@@ -24,12 +24,15 @@ file3 = client.files.create(
 
 Assistant_ID = 'asst_mYsdSqR87HqRc6hkmVIuU01x'
 print(Assistant_ID)
-TELEGRAM_TOKEN = '7114081148:AAGc8_M3CiQqJFFpMyXrQi0o3pzH9_CJcCI'
+TELEGRAM_TOKEN = '7370492284:AAGB0ciLGbRfG1JL9On4cP1Ct_17w7m8bdA'
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(bot)
 threads = {}
 
+async def remove_text_in_brackets(text):
+    # Используем регулярное выражение для поиска текста в квадратных скобках и удаляем его
+    return re.sub(r'\[.*?\]', '', text)
 async def write_to_excel(file_name, values):
     try:
         # Пытаемся загрузить существующую книгу Excel
@@ -56,7 +59,7 @@ async def send_excel_file(message: types.Message):
         await bot.send_document(message.chat.id, file)
 # Функция для добавления пользователя в базу данных
 async def handle_with_assistant(message, chat_id):
-    await bot.send_message(chat_id=message.chat.id, text='Обрабатываем ваш запрос...')
+    sent_message = await bot.send_message(chat_id=message.chat.id, text='Обрабатываем ваш запрос...')
     print('генерация началась')
 
     thread_id = threads[chat_id]
@@ -95,7 +98,9 @@ async def handle_with_assistant(message, chat_id):
         role = msg.role
         content = msg.content[0].text.value
         print(f"{role.capitalize()}: {content}")
-        await bot.send_message(chat_id=message.chat.id, text=content)
+        await bot.delete_message(chat_id=message.chat.id, message_id=sent_message.message_id)
+        fixed_content = await remove_text_in_brackets(content)
+        await bot.send_message(chat_id=message.chat.id, text=fixed_content)
         date = message.date.strftime("%Y-%m-%d %H:%M:%S")
         username = message.from_user.username
         question = message.text
