@@ -25,7 +25,7 @@ file3 = client.files.create(
 
 Assistant_ID = 'asst_mYsdSqR87HqRc6hkmVIuU01x'
 print(Assistant_ID)
-TELEGRAM_TOKEN = '6832211064:AAGj7DTV_LqZSli9Xz2Yn-0g4oegrg_4aFM'
+TELEGRAM_TOKEN = '7114081148:AAHlZfYWMxEng3mQZeP9zyqdfLLCvy-aJLw'
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(bot)
